@@ -92,10 +92,13 @@ class ShiftRegisterOut:
         но тогда не забываем про очистку перед началом передачи данных self.clear() и обязательно
         подключаем mr на пин
         """
-        # if mr:
-        #     self.clear()
-        #arr_to_registr = [(x>>1)&1 for x in range(pin_out)]
-        arr_to_register = [1 if x == pin_out else 0 for x in range(8)]
+        arr_to_register = []
+        if mr:
+            self.clear()
+            arr_to_register = [(x>>1)&1 for x in range(pin_out)]
+        else:
+            arr_to_register = [1 if x == pin_out else 0 for x in range(8)]
+
         self.send_to_pin(arr_to_register)
 
 
