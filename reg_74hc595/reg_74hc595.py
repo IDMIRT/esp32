@@ -2,21 +2,12 @@ from machine import Pin
 from time import sleep
 
 
-class ErrorTemplateLenght(Exception):
-    pass
-
-
-class ErrorLetter(Exception):
-    pass
-
-class ErrorTypeSend(Exception):
-    pass
 
 class ShiftRegisterOut:
     """
     Простой класс для работы с регистром сдвига исходящим 74hc595 в ESP32 и Raspberry
     при инициализации  обязательные параметры:
-    lutch - тактовый вход регистра хранения ST_CP устанавливает из памяти data(ds) на выводы
+    latch - тактовый вход регистра хранения ST_CP устанавливает из памяти data(ds) на выводы
     clock - тактовый вход регистра сдвига SH_CP помещает данные в память регистра
     data - вход последовательных данных 8 бит сюда заносим побитово данные (0,1)
     необязательные параметры:
@@ -26,8 +17,8 @@ class ShiftRegisterOut:
     С помощью класса можно работать как с единичным входом _send_int так  и c помощью шаблона _send_str
     """
 
-    def __init__(self, lutch, clock, data, oe=None, mr=None, register_count=1):
-        self.lutch = lutch
+    def __init__(self, latch, clock, data, oe=None, mr=None, register_count=1):
+        self.latch = latch
         self.clock = clock
         self.data = data
         self.oe = oe
@@ -57,8 +48,8 @@ class ShiftRegisterOut:
         self.clock.off()
 
     def _lutch_turn(self):
-        self.lutch.on()
-        self.lutch.off()
+        self.latch.on()
+        self.latch.off()
 
     def send(self, in_data):
         if type(in_data) == int:
@@ -66,7 +57,7 @@ class ShiftRegisterOut:
         elif type(in_data) == str:
             self._send_str(in_data)
         else:
-            raise ErrorTypeSend('Неверный тип данных для передачи в регистр')
+            raise TypeError('Неверный тип данных для передачи в регистр')
 
         self._lutch_turn()
 
@@ -78,21 +69,21 @@ class ShiftRegisterOut:
     def _send_str(self, template):
         """
         Процедура формирующая из строки шаблона список для передачи в память регистра
-        :param template: шаблон строки для вывода в пины Q0-Q7 шаблон состоит из 8 чисел в строковой
+        :param template: шаблон строки для вывода в пины Q0-Qn шаблон состоит из чисел в строковой
         переменной типа '10000000' ноль не работающий пин 1 работающий
         :return: список вывода на пины типа [1,0,0,0,0,0,0,0]
         """
         arr_to_register = []
         if len(template) > 8*self.register_count:
-            raise ErrorTemplateLenght('Шаблон не может быть больше восьми символов')
+            raise IndexError('Шаблон не содержать количество символов больше количества выводов')
         elif len(template) < 8*self.register_count:
-            raise ErrorTemplateLenght('Шаблон не может быть меньше восьми символов')
+            raise IndexError('Шаблон не может содержать количество символов меньше количества выводов')
 
         for count in range(8*self.register_count):
             if template[count] in ['0', '1']:
                 arr_to_register.append(int(template[count]))
             else:
-                raise ErrorLetter('В шаблоне можно использовать только 0 и 1')
+                raise SyntaxError('В шаблоне можно использовать только 0 и 1')
         self._send_to_pin(arr_to_register)
 
     def _send_int(self, pin_out):
@@ -104,21 +95,23 @@ class ShiftRegisterOut:
         но тогда не забываем про очистку перед началом передачи данных self.clear() и обязательно
         подключаем mr на пин
         """
+        if pin_out > 8*self.register_count:
+            raise IndexError('Номер вывода не может быть больше  количества выводов')
 
         if mr:
             self.clear()
-            arr_to_register = [(x>>1)&1 for x in range(pin_out)]
+            arr_to_register = [(x>>1) & 1 for x in range(pin_out)]
         else:
-            arr_to_register = [1 if x == pin_out else 0 for x in range(8*self.register_count)]
+            arr_to_register = [1 if x == pin_out else 0 for x in range(8 * self.register_count)]
 
         self._send_to_pin(arr_to_register)
 
 
 clock = Pin(5, Pin.OUT)  # shcp
-lutch = Pin(4, Pin.OUT)  # stcp
+latch = Pin(4, Pin.OUT)  # stcp
 data = Pin(2, Pin.OUT)  # ds
 mr = Pin(15, Pin.OUT)  # mr
-shift_new = ShiftRegisterOut(lutch, clock, data, mr=mr)
+shift_new = ShiftRegisterOut(latch, clock, data, mr=mr)
 for i in range(8):
     shift_new.send(i)
     sleep(0.5)
