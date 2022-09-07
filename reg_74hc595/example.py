@@ -1,6 +1,6 @@
 from machine import Pin
 from time import sleep
-from shift_register_out import ShiftRegisterOut
+from reg_74hc595 import ShiftRegisterOut
 
 clock = Pin(5, Pin.OUT)  # shcp
 lutch = Pin(4, Pin.OUT)  # stcp

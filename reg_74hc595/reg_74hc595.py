@@ -9,97 +9,109 @@ class ErrorTemplateLenght(Exception):
 class ErrorLetter(Exception):
     pass
 
+class ErrorTypeSend(Exception):
+    pass
 
 class ShiftRegisterOut:
     """
-    Простой класс для работы с регистром сдвига исходящим 74рс595 в ESP32 и Raspberry
+    Простой класс для работы с регистром сдвига исходящим 74hc595 в ESP32 и Raspberry
     при инициализации  обязательные параметры:
-    lutch - тактовый вход регистра хранения ST_CP устанавливает из памяти data(ds)
+    lutch - тактовый вход регистра хранения ST_CP устанавливает из памяти data(ds) на выводы
     clock - тактовый вход регистра сдвига SH_CP помещает данные в память регистра
     data - вход последовательных данных 8 бит сюда заносим побитово данные (0,1)
     необязательные параметры:
-    mr - очистка регистра памяти при если не нужен подключаем на питание
+    mr - очистка регистра памяти если не нужен подключаем на питание
     oe - отключение всех выводов регистра если не нужен подключаем на 0
-    С помощью класса можно работать как с единичным входом send_int так  и c помощью шаблона send_str
+    register_count - при использовании нескольких регистров через Q7S указываем количество регистров по умолчанию 1
+    С помощью класса можно работать как с единичным входом _send_int так  и c помощью шаблона _send_str
     """
 
-    def __init__(self, lutch, clock, data, oe=None, mr=None):
+    def __init__(self, lutch, clock, data, oe=None, mr=None, register_count=1):
         self.lutch = lutch
         self.clock = clock
         self.data = data
         self.oe = oe
         self.mr = mr
+        self.register_count = register_count
         if self.mr:
             self.mr.on()
         if self.oe:
             self.oe.off()
 
-    def pin_off(self):
+    def pins_off(self):
         if self.oe:
             self.oe.on()
 
-    def pin_on(self):
+    def pins_on(self):
         if self.oe:
             self.oe.off()
 
     def clear(self):
         if self.mr:
             self.mr.off()
-            self.lutch_turn()
+            self._lutch_turn()
             self.mr.on()
 
-    def clock_turn(self):
+    def _clock_turn(self):
         self.clock.on()
         self.clock.off()
 
-    def lutch_turn(self):
+    def _lutch_turn(self):
         self.lutch.on()
         self.lutch.off()
 
-    def send(self, out):
-        if type(out) == int:
-            self.send_int(out)
-        elif type(out) == str:
-            self.send_str(out)
+    def send(self, in_data):
+        if type(in_data) == int:
+            self._send_int(in_data)
+        elif type(in_data) == str:
+            self._send_str(in_data)
+        else:
+            raise ErrorTypeSend('Неверный тип данных для передачи в регистр')
 
-        self.lutch_turn()
+        self._lutch_turn()
 
-    def send_to_pin(self, pins_out):
+    def _send_to_pin(self, pins_out):
         for value in pins_out:
             self.data(value)
-            self.clock_turn()
+            self._clock_turn()
 
-    def send_str(self, template):
+    def _send_str(self, template):
+        """
+        Процедура формирующая из строки шаблона список для передачи в память регистра
+        :param template: шаблон строки для вывода в пины Q0-Q7 шаблон состоит из 8 чисел в строковой
+        переменной типа '10000000' ноль не работающий пин 1 работающий
+        :return: список вывода на пины типа [1,0,0,0,0,0,0,0]
+        """
         arr_to_register = []
-        if len(template) > 8:
+        if len(template) > 8*self.register_count:
             raise ErrorTemplateLenght('Шаблон не может быть больше восьми символов')
-        elif len(template) < 8:
+        elif len(template) < 8*self.register_count:
             raise ErrorTemplateLenght('Шаблон не может быть меньше восьми символов')
 
-        for count in range(8):
+        for count in range(8*self.register_count):
             if template[count] in ['0', '1']:
                 arr_to_register.append(int(template[count]))
             else:
                 raise ErrorLetter('В шаблоне можно использовать только 0 и 1')
-        self.send_to_pin(arr_to_register)
+        self._send_to_pin(arr_to_register)
 
-    def send_int(self, pin_out):
+    def _send_int(self, pin_out):
         """
         Формирует маску для помещение в память и включения одного пина
-        :param pin_out: номер Q0-Q7 который нужно включить
+        :param pin_out: номер Q0-Qn который нужно включить
         :return: маска(список) который будет помещаться в регистр памяти
         можно упростить используя побитовые операции (x>>1)&1 и range(pin_out) для экономии
         но тогда не забываем про очистку перед началом передачи данных self.clear() и обязательно
         подключаем mr на пин
         """
-        arr_to_register = []
+
         if mr:
             self.clear()
             arr_to_register = [(x>>1)&1 for x in range(pin_out)]
         else:
-            arr_to_register = [1 if x == pin_out else 0 for x in range(8)]
+            arr_to_register = [1 if x == pin_out else 0 for x in range(8*self.register_count)]
 
-        self.send_to_pin(arr_to_register)
+        self._send_to_pin(arr_to_register)
 
 
 clock = Pin(5, Pin.OUT)  # shcp
