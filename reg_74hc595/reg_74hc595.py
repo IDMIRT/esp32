@@ -91,29 +91,47 @@ class ShiftRegisterOut:
         Формирует маску для помещение в память и включения одного пина
         :param pin_out: номер Q0-Qn который нужно включить
         :return: маска(список) который будет помещаться в регистр памяти
-        можно упростить используя побитовые операции (x>>1)&1 и range(pin_out) для экономии
-        но тогда не забываем про очистку перед началом передачи данных self.clear() и обязательно
-        подключаем mr на пин
-        """
-        if pin_out > 8*self.register_count:
-            raise IndexError('Номер вывода не может быть больше  количества выводов')
 
-        if mr:
-            self.clear()
-            arr_to_register = [(x>>1) & 1 for x in range(pin_out)]
-        else:
-            arr_to_register = [1 if x == pin_out else 0 for x in range(8 * self.register_count)]
+        """
+        if pin_out > 8*self.register_count-1:
+            raise IndexError('Номер пина не может быть больше  количества выводов')
+
+
+        arr_to_register = [1 if x == pin_out else 0 for x in range(8 * self.register_count)]
 
         self._send_to_pin(arr_to_register)
 
 
-clock = Pin(5, Pin.OUT)  # shcp
-latch = Pin(4, Pin.OUT)  # stcp
-data = Pin(2, Pin.OUT)  # ds
-mr = Pin(15, Pin.OUT)  # mr
-shift_new = ShiftRegisterOut(latch, clock, data, mr=mr)
-for i in range(8):
-    shift_new.send(i)
-    sleep(0.5)
 
-shift_new.clear()
+# clock = Pin(5, Pin.OUT)  # shcp
+# lutch = Pin(4, Pin.OUT)  # stcp
+# data = Pin(2, Pin.OUT)  # ds
+# mr = Pin(15, Pin.OUT)  # mr
+# shift_new = ShiftRegisterOut(lutch, clock, data, mr=mr)
+#
+# for i in range(9):
+#     print(i)
+#     shift_new.send(i)
+#     sleep(0.5)
+#
+# shift_new.clear()
+#
+# register_templates = ['00011000','00111100', '01111110', '11111111',
+#                       '00000000','10000000','11000000','11100000','11110000',
+#                       '11111000','11111100','11111110','11111111']
+#
+# for value in register_templates:
+#     shift_new.send(value)
+#     sleep(0.5)
+#
+# shift_new.clear()
+# clock = Pin(5, Pin.OUT)  # shcp
+# latch = Pin(4, Pin.OUT)  # stcp
+# data = Pin(2, Pin.OUT)  # ds
+# mr = Pin(15, Pin.OUT)  # mr
+# shift_new = ShiftRegisterOut(latch, clock, data, mr=mr)
+# for i in range(8):
+#     shift_new.send(i)
+#     sleep(0.5)
+#
+# shift_new.clear()
