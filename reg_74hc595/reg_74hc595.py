@@ -1,5 +1,3 @@
-from machine import Pin
-from time import sleep
 
 
 
@@ -74,9 +72,9 @@ class ShiftRegisterOut:
         :return: список вывода на пины типа [1,0,0,0,0,0,0,0]
         """
         arr_to_register = []
-        if len(template) > 8*self.register_count:
+        if len(template) > 8*self.register_count-1:
             raise IndexError('Шаблон не содержать количество символов больше количества выводов')
-        elif len(template) < 8*self.register_count:
+        elif len(template) < 8*self.register_count-1:
             raise IndexError('Шаблон не может содержать количество символов меньше количества выводов')
 
         for count in range(8*self.register_count):
