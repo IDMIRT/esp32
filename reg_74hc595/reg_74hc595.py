@@ -72,9 +72,9 @@ class ShiftRegisterOut:
         :return: список вывода на пины типа [1,0,0,0,0,0,0,0]
         """
         arr_to_register = []
-        if len(template) > 8*self.register_count-1:
+        if len(template) > 8*self.register_count:
             raise IndexError('Шаблон не содержать количество символов больше количества выводов')
-        elif len(template) < 8*self.register_count-1:
+        elif len(template) < 8*self.register_count:
             raise IndexError('Шаблон не может содержать количество символов меньше количества выводов')
 
         for count in range(8*self.register_count):
@@ -91,7 +91,7 @@ class ShiftRegisterOut:
         :return: маска(список) который будет помещаться в регистр памяти
 
         """
-        if pin_out > 8*self.register_count-1:
+        if pin_out > 7*self.register_count:
             raise IndexError('Номер пина не может быть больше  количества выводов')
 
 
@@ -99,37 +99,3 @@ class ShiftRegisterOut:
 
         self._send_to_pin(arr_to_register)
 
-
-
-# clock = Pin(5, Pin.OUT)  # shcp
-# lutch = Pin(4, Pin.OUT)  # stcp
-# data = Pin(2, Pin.OUT)  # ds
-# mr = Pin(15, Pin.OUT)  # mr
-# shift_new = ShiftRegisterOut(lutch, clock, data, mr=mr)
-#
-# for i in range(9):
-#     print(i)
-#     shift_new.send(i)
-#     sleep(0.5)
-#
-# shift_new.clear()
-#
-# register_templates = ['00011000','00111100', '01111110', '11111111',
-#                       '00000000','10000000','11000000','11100000','11110000',
-#                       '11111000','11111100','11111110','11111111']
-#
-# for value in register_templates:
-#     shift_new.send(value)
-#     sleep(0.5)
-#
-# shift_new.clear()
-# clock = Pin(5, Pin.OUT)  # shcp
-# latch = Pin(4, Pin.OUT)  # stcp
-# data = Pin(2, Pin.OUT)  # ds
-# mr = Pin(15, Pin.OUT)  # mr
-# shift_new = ShiftRegisterOut(latch, clock, data, mr=mr)
-# for i in range(8):
-#     shift_new.send(i)
-#     sleep(0.5)
-#
-# shift_new.clear()
