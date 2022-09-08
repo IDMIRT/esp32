@@ -18,7 +18,7 @@
 
 ![Схема подключения к контроллеру](https://github.com/IDMIRT/esp32/blob/master/picture/595_single.png)
 
-##Пример кода с использванием класса
+## Пример кода с использванием класса
 ```python
 from machine import Pin
 from time import sleep
@@ -30,12 +30,14 @@ data = Pin(2, Pin.OUT)  # ds
 mr = Pin(15, Pin.OUT)  # mr
 shift_new = ShiftRegisterOut(lutch, clock, data, mr=mr) 
 
+# Для использования по номеру контакта Q0-Q7 
 for i in range(8):
     shift_new.send(i)
     sleep(0.5)
 
 shift_new.clear()
 
+# Использование шаблона 
 register_templates = ['00011000','00111100', '01111110', '11111111',
                       '00000000','10000000','11000000','11100000','11110000',
                       '11111000','11111100','11111110','11111111']
