@@ -1,8 +1,8 @@
 # Здесь я выкладываются небольшие библиотеки  для работы с устройствами подключаемыми к ESP32.
 
 # reg_74hc595
-Небольшой класс для работы с микросхемой 74hc595 подключенной к ESP32.
-![Входы выходы на микросхеме](https://github.com/IDMIRT/ESP32/picture/74hc595-serial-shift-register.jpg)
+Небольшой класс на micropython для работы с микросхемой 74hc595 подключенной к ESP32.
+![Входы выходы на микросхеме](https://github.com/IDMIRT/esp32/blob/master/picture/74hc595-serial-shift-register.jpg)
 
 |Q0-Q7| Выходные контакты они же выводы или пины    |
 |-----|---------------------------------------------|
@@ -14,7 +14,7 @@
 | Q7S | Контакт связи с другой микросхемой 74hc595  |
 
 
-![Схема подключения к контроллеру](https://github.com/IDMIRT/ESP32/picture/74hc595-serial-shift-register.jpg)
+![Схема подключения к контроллеру](https://github.com/IDMIRT/esp32/blob/master/picture/ShftOut_Schema2.gif)
 
 
 
